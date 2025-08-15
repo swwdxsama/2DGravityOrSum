@@ -22,6 +22,7 @@
   <ItemGroup>
     <None Include="SDL3.dll" />
     <None Include="SDL3_image.dll" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">

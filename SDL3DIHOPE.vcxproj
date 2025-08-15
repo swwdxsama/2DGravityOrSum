@@ -144,6 +144,7 @@
     <ClCompile Include="SDL3DIHOPE.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="README.md" />
     <None Include="SDL3.dll" />
     <None Include="SDL3_image.dll" />
   </ItemGroup>
