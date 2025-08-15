@@ -89,27 +89,22 @@ void destroyWindow()
 void handleObjects() {
     Obj* back = &objects.back();
     Obj* front = &objects.front();
-    Obj backCopy = *back;
-    Obj frontCopy = *front;
-    listAdd(back->prevs, backCopy);
-    listAdd(front->prevs, frontCopy);
-    Node* nod = back->prevs->first;
-    while (nod != NULL) {
-        nod->obj->x -= nod->obj->dx;
-        nod->obj->y -= nod->obj->dy;
-        nod = nod->next;
-    }
+    //Obj backCopy = *back;
+    //Obj frontCopy = *front;
+    //listAdd(back->prevs, backCopy);
+    //listAdd(front->prevs, frontCopy);
+    applyGravitationalPull(*back, *front);
+    applyMovement(*front);
+    applyMovement(*back);
+    
     if (detectCollision(*back, *front)) {
         printf("collision\n");
         resolveCollision(*back, *front);
     }
+    applyTransformation(*back, *front);
+    applyTransformation(*back, *back);
 
-    applyGravitationalPull(*back, *front);
-
-    // Update only front
-    front->x += front->dx - back->dx;
-    front->y += front->dy - back->dy;
-
+    
     drawObject(renderer, *front);
     drawObject(renderer, *back);
 }
@@ -130,7 +125,7 @@ int main()
     obj.radius = 30;
     obj.color = BLUE;
     obj.mass = 15500000;
-    obj.prevs = createList();
+    //obj.prevs = createList();
     objects.push_front(obj);
     Obj obj2;
     obj2.x = 700;
@@ -140,7 +135,7 @@ int main()
     obj2.radius = 30;
     obj2.color = RED;
     obj2.mass = 15500000;
-    obj2.prevs = createList();
+    //obj2.prevs = createList();
     objects.push_front(obj2);
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL Init failed: " << SDL_GetError() << '\n';

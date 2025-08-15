@@ -16,7 +16,7 @@ struct Obj {
     float dy;
     float mass; // mass in kgs
     colors color;
-    List* prevs;
+    //List* prevs;
 };
 
 struct Node {
@@ -108,6 +108,7 @@ void fillCircle(SDL_Renderer* ren, float cx, float cy, float r, colors color) {
 
 void drawObject(SDL_Renderer* renderer, Obj object) {
     fillCircle(renderer, object.x, object.y, object.radius, object.color);
+    /*
     if (object.prevs->size > 0) {
         Node* it = object.prevs->first;
         float radius = 0.9;
@@ -118,6 +119,7 @@ void drawObject(SDL_Renderer* renderer, Obj object) {
             fillCircle(renderer, it->obj->x, it->obj->y, it->obj->radius * radius, it->obj->color);
         }
     }
+    */
 }
 
 inline bool floatEqual(float a, float b) {
@@ -189,6 +191,14 @@ void applyMovement(Obj& object) {
 void applyTransformation(Obj& mainObj, Obj& target) {
     target.x -= mainObj.dx;
     target.y -= mainObj.dy;
+    /*
+    Node* node = target.prevs->first;
+    while (node != NULL) {
+        node->obj->x -= mainObj.dx;
+        node->obj->y -= mainObj.dy;
+        node = node->next;
+    }
+    */
 }
 
 void resolveWallColision(Obj& object) {
