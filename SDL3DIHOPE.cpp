@@ -10,6 +10,7 @@
 #include <iostream>
 #include <list>
 #include "Objects.h"
+#include "GUI.h"
 
 
 
@@ -162,8 +163,8 @@ int main()
         //handle keyboard output
 
         
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderFillRect(renderer, background);
+        SDL_SetRenderDrawColor(renderer, 30, 0, 40, 255);
+        SDL_RenderFillRect(renderer, background);//background
         
         
 
