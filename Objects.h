@@ -16,6 +16,7 @@ struct Obj {
     float dy;
     float mass; // mass in kgs
     colors color;
+    bool main;
     //List* prevs;
 };
 
@@ -31,6 +32,13 @@ struct List {
     int size;
 };
 
+Obj* createObject(float radius, float x, float y, float dx, float dy, float mass, colors color, bool main) {
+    Obj* obj = (Obj*)malloc(sizeof(Obj));
+    obj->radius = radius;
+    obj->x = x; obj->y = y; obj->dx = dx; obj->dy = dy;
+    obj->mass = mass; obj->color = color; obj->main = main;
+    return obj;
+}
 
 List* createList(){
     List* list = (List*)malloc(sizeof(List));
@@ -191,14 +199,6 @@ void applyMovement(Obj& object) {
 void applyTransformation(Obj& mainObj, Obj& target) {
     target.x -= mainObj.dx;
     target.y -= mainObj.dy;
-    /*
-    Node* node = target.prevs->first;
-    while (node != NULL) {
-        node->obj->x -= mainObj.dx;
-        node->obj->y -= mainObj.dy;
-        node = node->next;
-    }
-    */
 }
 
 void resolveWallColision(Obj& object) {
@@ -222,6 +222,7 @@ void resolveWallColision(Obj& object) {
         break;
     }
 }
+
 void resolveCollision(Obj& a, Obj& b) {
     float nx = b.x - a.x;
     float ny = b.y - a.y;
@@ -266,3 +267,7 @@ void resolveCollision(Obj& a, Obj& b) {
     b.dy = tby + ny * vb;
 }
 
+void applyMovement(Obj& object, float dx, float dy) {
+    object.x += dx;
+    object.y += dy;
+}

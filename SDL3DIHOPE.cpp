@@ -13,6 +13,16 @@
 #include "GUI.h"
 
 
+typedef struct nn {
+    struct nn* next;
+    struct nn* prev;
+    Obj* object;
+}objNode;
+
+typedef struct {
+    objNode* first;
+    objNode* last;
+}objList;
 
 //define window dimensions
 constexpr int WINDOW_WIDTH{ 1000 };
@@ -26,10 +36,35 @@ SDL_Window* window{ nullptr };
 SDL_Renderer* renderer{ nullptr };
 SDL_Event currentEvent;
 SDL_FRect* background = (SDL_FRect*)malloc(sizeof(SDL_FRect));
-std::list<Obj> objects;
+objList objects;
 
 
+objList createObjList() {
+    objList ret;
+    ret.first = NULL;
+    ret.last = NULL;
+    return ret;
+}
 
+objNode* createNode(Obj* object) {
+    objNode* node = (objNode*)malloc(sizeof(objNode));
+    node->object = object;
+    node->next = NULL;
+    node->prev = NULL;
+    return node;
+}
+
+void addObject(objList* list, objNode* node) {
+    if (list->first == NULL) {
+        list->first = node;
+        list->last = node;
+    }
+    else {
+        node->next = list->first;
+        list->first->prev = node;
+        list->first = node;
+    }
+}
 
 bool initWindow()
 {
@@ -87,7 +122,37 @@ void destroyWindow()
     SDL_Quit();
 }
 
-void handleObjects() {
+void applyGravitationalPullToAllObjects(objNode* first) {//yeah its prolly like n^2 or smth, absolutely atrocious
+    objNode* next = first->next;
+    while (first != NULL) {
+        while (next != NULL) {
+            applyGravitationalPull(*first->object, *next->object);
+            next = next->next;
+        }
+        first = first->next;
+        if (first == NULL) return;
+        next = first->next;
+    }
+}
+
+void checkAllCollisions(objNode* first) {//its n^2 too, if your computer experiences lag when too many objects, get a gud computah
+    objNode* next = first->next;
+    while (first != NULL) {
+        while (next != NULL) {
+            if (detectCollision(*first->object, *next->object)) {
+                printf("collision\n");
+                resolveCollision(*first->object, *next->object);
+            }
+            next = next->next;
+        }
+        first = first->next;
+        if (first == NULL) return;
+        next = first->next;
+    }
+}
+
+void handleObjectsWithMain() {
+    /*
     Obj* back = &objects.back();
     Obj* front = &objects.front();
     //Obj backCopy = *back;
@@ -107,10 +172,35 @@ void handleObjects() {
 
     
     drawObject(renderer, *front);
-    drawObject(renderer, *back);
+    drawObject(renderer, *back);*/
+    objNode* main = objects.first;
+    if (main == NULL) return;
+    while (main != NULL) {
+        if (main->object->main) break;
+        main = main->next;
+    }
+    objNode* node = objects.first;
+    applyGravitationalPullToAllObjects(node);
+    while (node != NULL) {
+        applyMovement(*node->object);
+        node = node->next;
+    }
+    node = objects.first;
+    checkAllCollisions(node);
+    while (node != NULL) {
+        applyTransformation(*main->object, *node->object);
+        drawObject(renderer, *node->object);
+        node = node->next;
+    }
 }
 
-
+void handleMouseMovement(float dx, float dy) {
+    objNode* node = objects.first;
+    while (node != NULL) {
+        applyMovement(*node->object, dx, dy);
+        node = node->next;
+    }
+}
 
 int main()
 {
@@ -118,26 +208,13 @@ int main()
     background->w = 1000;
     background->x = 0;
     background->y = 0;
-    Obj obj;
-    obj.x = 300;
-    obj.y = 700;
-    obj.dx = 3;
-    obj.dy = 3;
-    obj.radius = 30;
-    obj.color = BLUE;
-    obj.mass = 15500000;
-    //obj.prevs = createList();
-    objects.push_front(obj);
-    Obj obj2;
-    obj2.x = 700;
-    obj2.y = 300;
-    obj2.dx = -3;
-    obj2.dy = -3;
-    obj2.radius = 30;
-    obj2.color = RED;
-    obj2.mass = 15500000;
-    //obj2.prevs = createList();
-    objects.push_front(obj2);
+    objects = createObjList();
+    Obj* object = createObject(20, 500, 500, 0, 0, 100000, BLUE, true);
+    Obj* object2 = createObject(20, 200, 200, 0, 0, 1000000, RED, false);
+    objNode* node = createNode(object);
+    objNode* node2 = createNode(object2);
+    addObject(&objects, node);
+    addObject(&objects, node2);
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL Init failed: " << SDL_GetError() << '\n';
         return 1;
@@ -147,7 +224,7 @@ int main()
     bool running = true;
     SDL_Event e;
     drawGUIWindow(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, quit, mouseX, mouseY, displayScale, window, currentEvent);
-    destroyWindow();
+    //destroyWindow();
     initWindow();
 
     const Uint32 frameDelay = 17; // 60 FPS
@@ -159,6 +236,11 @@ int main()
             if (e.type == SDL_EVENT_QUIT)
                 running = false;
             //handle events
+            if (e.type == SDL_EVENT_MOUSE_MOTION && (e.motion.state & SDL_BUTTON_LMASK)) {
+                float dx = e.motion.xrel;  // relative movement
+                float dy = e.motion.yrel;
+                handleMouseMovement(dx, dy);
+            }
 
         }
 
@@ -172,7 +254,7 @@ int main()
         
 
         //render:
-        handleObjects();
+        handleObjectsWithMain();
         system("CLS");
         
         
