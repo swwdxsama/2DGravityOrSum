@@ -146,6 +146,9 @@ int main()
 
     bool running = true;
     SDL_Event e;
+    drawGUIWindow(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, quit, mouseX, mouseY, displayScale, window, currentEvent);
+    destroyWindow();
+    initWindow();
 
     const Uint32 frameDelay = 17; // 60 FPS
 
