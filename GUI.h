@@ -1,24 +1,20 @@
 #pragma once
 
+typedef struct {
+    SDL_FRect* rectangle;
+    SDL_Texture* texture;
+    std::string function;
+}Button;
+Button* startButton;
+
+
 bool checkIfInside(SDL_FRect* rect, float x, float y) {
     if ((rect->x < x) && ((rect->x + rect->w) > x) && (rect->y < y) && ((rect->y + rect->h) > y)) return true;
     return false;
 }
 
-SDL_FRect* startButton;
-SDL_Texture* startButtonTexture;
-
-void defStart(SDL_Renderer* renderer, SDL_FRect** start, SDL_Texture** texture) {
-    *start = (SDL_FRect*)malloc(sizeof(SDL_FRect));
-    (*start)->x = 400;
-    (*start)->y = 700;
-    (*start)->h = 75;
-    (*start)->w = 200;
-    *texture = IMG_LoadTexture(renderer, "startButton.png");
-}
-
-int handleStartButton(SDL_FRect * rect, float x, float y){
-    if (checkIfInside(rect, x, y)) return 1;
+int handleButtons(float x, float y) {
+    if (checkIfInside(startButton->rectangle, x, y)) return 1;
     return 0;
 }
 
@@ -38,21 +34,30 @@ void destroyWindow(SDL_Renderer* renderer, SDL_Window* window)
     SDL_Quit();
 }
 
-void drawButton(SDL_Renderer* renderer, SDL_Texture* texture, SDL_FRect* rect) {
-    SDL_RenderTexture(renderer, texture, NULL, rect);
+void drawButton(SDL_Renderer* renderer, Button* button) {
+    SDL_RenderTexture(renderer, button->texture, NULL, button->rectangle);
+}
+
+Button* initializeButton(SDL_Renderer* renderer, int h, int w, float x, float y, std::string function, const char* texture) {
+    Button* ret = (Button*)malloc(sizeof(Button));
+    SDL_Texture* tex = IMG_LoadTexture(renderer, texture);
+    SDL_FRect* rect = (SDL_FRect*)malloc(sizeof(SDL_FRect));
+    rect->h = h; rect->w = w; rect->x = x; rect->y = y;
+    ret->function = function;
+    ret->rectangle = rect;
+    ret->texture = tex;
+    return ret;
 }
 
 int drawGUIWindow(SDL_Renderer* renderer, int WINDOW_WIDTH, int WINDOW_HEIGHT, bool quit, float mouseX, float mouseY, float displayScale, SDL_Window* window, SDL_Event currentEvent){
     SDL_FRect* background = (SDL_FRect*)malloc(sizeof(SDL_FRect));
+    startButton = initializeButton(renderer, 75, 200, 400, 700, "Start", "startButton.png");
     background->h = 1000;
     background->w = 1000;
     background->x = 0;
     background->y = 0;
-    defStart(renderer, &startButton, &startButtonTexture);
-    
     bool running = true;
     SDL_Event e;
-    
 
     const Uint32 frameDelay = 17; // 60 FPS
 
@@ -67,7 +72,7 @@ int drawGUIWindow(SDL_Renderer* renderer, int WINDOW_WIDTH, int WINDOW_HEIGHT, b
             //handle events
             if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                 SDL_GetMouseState(&mouseX, &mouseY);
-                if (handleStartButton(startButton, mouseX, mouseY)) return 12;
+                if (handleButtons(mouseX, mouseY)) return 12;
             }
         }
 
@@ -80,7 +85,7 @@ int drawGUIWindow(SDL_Renderer* renderer, int WINDOW_WIDTH, int WINDOW_HEIGHT, b
 
 
         //render:
-        drawButton(renderer, startButtonTexture, startButton);
+        drawButton(renderer, startButton);
 
         SDL_RenderPresent(renderer);
 
