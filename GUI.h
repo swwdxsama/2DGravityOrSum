@@ -7,6 +7,85 @@ typedef struct {
 }Button;
 Button* startButton;
 
+typedef struct {
+    SDL_FRect* rectangle;
+    const char* data;
+    bool active;
+} TextBox;
+
+int getSize(const char* text) {
+    char a;
+    int i = 0;
+    a = text[0];
+    while (a != '\0') {
+        i++; a = text[i];
+    }
+    return i;
+}
+
+void startInput(SDL_Window* window, TextBox* textbox) {
+    SDL_Rect rect = {
+        (int)textbox->rectangle->x,
+        (int)textbox->rectangle->y,
+        (int)textbox->rectangle->w,
+        (int)textbox->rectangle->h
+    };
+    SDL_SetTextInputArea(window, &rect, getSize(textbox->data));
+    SDL_StartTextInput(window);
+    textbox->active = true;
+}
+
+void stopInput(SDL_Window* window, TextBox* textbox) {
+    SDL_StopTextInput(window);
+    textbox->active = false;
+}
+
+void drawTextBox(SDL_Renderer* renderer, TextBox* text) {//AND TO THAT
+    // draw box outline
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    float x = text->rectangle->x;
+    float y = text->rectangle->y;
+    float w = text->rectangle->w;
+    float h = text->rectangle->h;
+
+    SDL_RenderLine(renderer, x, y, x + w, y);     // top
+    SDL_RenderLine(renderer, x, y, x, y + h); // left
+    SDL_RenderLine(renderer, x + w, y, x + w, y + h); // right
+    SDL_RenderLine(renderer, x, y + h, x + w, y + h); // bottom
+
+    // render typed text if any
+    if (!(text->data[0] == '\0')) {
+        SDL_Color color = { 255, 255, 255, 255 }; // white text
+        SDL_RenderDebugText(renderer, x, y, text->data);
+        
+    }
+}
+/*ILL GET BACK TO IT LATER
+
+void handleTextEvent(TextBox* textbox, SDL_Event* e) {
+    if (!textbox->active) return;
+
+    if (e->type == SDL_EVENT_TEXT_INPUT) {
+        textbox->data += e->text.text; // append typed chars
+    }
+    else if (e->type == SDL_EVENT_KEY_DOWN) {
+        if (e->key.key == SDLK_BACKSPACE && !textbox->data.empty()) {
+            textbox->data.pop_back();
+        }
+    }
+}
+*/
+TextBox* createTextBox(float x, float y, float w, float h) {
+    SDL_FRect* rect = (SDL_FRect*)malloc(sizeof(SDL_FRect));
+    rect->x = x;
+    rect->y = y;
+    rect->w = w;
+    rect->h = h;
+    TextBox* text = (TextBox*)malloc(sizeof(TextBox));
+    text->rectangle = rect;
+    return text;
+}
+
 
 bool checkIfInside(SDL_FRect* rect, float x, float y) {
     if ((rect->x < x) && ((rect->x + rect->w) > x) && (rect->y < y) && ((rect->y + rect->h) > y)) return true;
@@ -58,7 +137,7 @@ int drawGUIWindow(SDL_Renderer* renderer, int WINDOW_WIDTH, int WINDOW_HEIGHT, b
     background->y = 0;
     bool running = true;
     SDL_Event e;
-
+   // TextBox* textbox = createTextBox(20, 20, 100, 20);
     const Uint32 frameDelay = 17; // 60 FPS
 
     while (running) {
@@ -69,11 +148,34 @@ int drawGUIWindow(SDL_Renderer* renderer, int WINDOW_WIDTH, int WINDOW_HEIGHT, b
                 running = false;
                 destroyWindow(renderer, window);
             }
+            if (e.type == SDL_EVENT_TEXT_INPUT || e.type == SDL_EVENT_KEY_DOWN) {
+                //handleTextEvent(textbox, &e); //AND TO THAT
+            }
             //handle events
             if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                 SDL_GetMouseState(&mouseX, &mouseY);
-                if (handleButtons(mouseX, mouseY)) return 12;
+                //if (checkIfInside(textbox->rectangle, mouseX, mouseY)) {
+                //    startInput(window, textbox);
+                //}
+                //else {
+                //    stopInput(window, textbox);
+                //}
+                int button = handleButtons(mouseX, mouseY);
+                
+                switch (button) {
+                case 1: 
+                    return 12;
+                    break;
+                case 2:
+
+                    break;
+                case 3:
+                    break;
+
+                }
+
             }
+
         }
 
         const bool* keystate = SDL_GetKeyboardState(nullptr);
@@ -86,7 +188,7 @@ int drawGUIWindow(SDL_Renderer* renderer, int WINDOW_WIDTH, int WINDOW_HEIGHT, b
 
         //render:
         drawButton(renderer, startButton);
-
+        //drawTextBox(renderer, textbox);
         SDL_RenderPresent(renderer);
 
         Uint64 frameTime = SDL_GetTicks() - frameStart;

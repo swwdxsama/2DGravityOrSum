@@ -13,6 +13,7 @@
 #include "GUI.h"
 
 
+
 typedef struct nn {
     struct nn* next;
     struct nn* prev;
@@ -37,13 +38,57 @@ SDL_Renderer* renderer{ nullptr };
 SDL_Event currentEvent;
 SDL_FRect* background = (SDL_FRect*)malloc(sizeof(SDL_FRect));
 objList objects;
-
+SDL_Texture* grid;
+SDL_FRect* gr[3][3];
 
 objList createObjList() {
     objList ret;
     ret.first = NULL;
     ret.last = NULL;
     return ret;
+}
+
+void initializeGrid() {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3l; j++) {
+            SDL_FRect* rect = (SDL_FRect*)malloc(sizeof(SDL_FRect));
+            rect->x = 1000 * (j - 1);
+            rect->y = 1000 * (i - 1);
+            rect->w = 1000;
+            rect->h = 1000;
+            gr[j][i] = rect;
+        }
+    }
+}
+
+void drawGrid() {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3l; j++) {
+            SDL_RenderTexture(renderer, grid, NULL, gr[j][i]);
+        }
+    }
+}
+
+void transformGrid(float dx, float dy) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            gr[j][i]->x += dx;
+            gr[j][i]->y += dy;
+            if (gr[j][i]->x > 2000) {
+                gr[j][i]->x -= 3000;
+            }
+            if (gr[j][i]->x < -1000) {
+                gr[j][i]->x += 3000;
+            }
+            if (gr[j][i]->y > 2000) {
+                gr[j][i]->y -= 3000;
+            }
+            if (gr[j][i]->y < -1000) {
+                gr[j][i]->y += 3000;
+            }
+
+        }
+    }
 }
 
 objNode* createNode(Obj* object) {
@@ -152,27 +197,6 @@ void checkAllCollisions(objNode* first) {//its n^2 too, if your computer experie
 }
 
 void handleObjectsWithMain() {
-    /*
-    Obj* back = &objects.back();
-    Obj* front = &objects.front();
-    //Obj backCopy = *back;
-    //Obj frontCopy = *front;
-    //listAdd(back->prevs, backCopy);
-    //listAdd(front->prevs, frontCopy);
-    applyGravitationalPull(*back, *front);
-    applyMovement(*front);
-    applyMovement(*back);
-    
-    if (detectCollision(*back, *front)) {
-        printf("collision\n");
-        resolveCollision(*back, *front);
-    }
-    applyTransformation(*back, *front);
-    applyTransformation(*back, *back);
-
-    
-    drawObject(renderer, *front);
-    drawObject(renderer, *back);*/
     objNode* main = objects.first;
     if (main == NULL) return;
     while (main != NULL) {
@@ -187,6 +211,9 @@ void handleObjectsWithMain() {
     }
     node = objects.first;
     checkAllCollisions(node);
+    transformGrid(main->object->dx, main->object->dy);
+    drawGrid();
+    
     while (node != NULL) {
         applyTransformation(*main->object, *node->object);
         drawObject(renderer, *node->object);
@@ -209,8 +236,8 @@ int main()
     background->x = 0;
     background->y = 0;
     objects = createObjList();
-    Obj* object = createObject(20, 500, 500, 0, 0, 100000, BLUE, true);
-    Obj* object2 = createObject(20, 200, 200, 0, 0, 1000000, RED, false);
+    Obj* object = createObject(20, 500, 500, -0.5, -0.5, 500000, BLUE, true);
+    Obj* object2 = createObject(20, 200, 200, 1, 0, 10000000, RED, false);
     objNode* node = createNode(object);
     objNode* node2 = createNode(object2);
     addObject(&objects, node);
@@ -228,7 +255,8 @@ int main()
     initWindow();
 
     const Uint32 frameDelay = 17; // 60 FPS
-
+    grid = IMG_LoadTexture(renderer, "grid.png");
+    initializeGrid();
     while (running) {
         Uint64 frameStart = SDL_GetTicks();
 
@@ -240,6 +268,7 @@ int main()
                 float dx = e.motion.xrel;  // relative movement
                 float dy = e.motion.yrel;
                 handleMouseMovement(dx, dy);
+                transformGrid(dx, dy);
             }
 
         }
