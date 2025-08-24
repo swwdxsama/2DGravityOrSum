@@ -151,6 +151,7 @@
   <ItemGroup>
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Objects.h" />
+    <ClInclude Include="UI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

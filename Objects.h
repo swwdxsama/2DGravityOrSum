@@ -32,6 +32,45 @@ struct List {
     int size;
 };
 
+typedef struct nn {
+    struct nn* next;
+    struct nn* prev;
+    Obj* object;
+}objNode;
+
+typedef struct {
+    objNode* first;
+    objNode* last;
+}objList;
+
+
+objList createObjList() {
+    objList ret;
+    ret.first = NULL;
+    ret.last = NULL;
+    return ret;
+}
+
+objNode* createNode(Obj* object) {
+    objNode* node = (objNode*)malloc(sizeof(objNode));
+    node->object = object;
+    node->next = NULL;
+    node->prev = NULL;
+    return node;
+}
+
+void addObject(objList* list, objNode* node) {
+    if (list->first == NULL) {
+        list->first = node;
+        list->last = node;
+    }
+    else {
+        node->next = list->first;
+        list->first->prev = node;
+        list->first = node;
+    }
+}
+
 Obj* createObject(float radius, float x, float y, float dx, float dy, float mass, colors color, bool main) {
     Obj* obj = (Obj*)malloc(sizeof(Obj));
     obj->radius = radius;

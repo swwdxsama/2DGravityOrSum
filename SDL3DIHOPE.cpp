@@ -11,19 +11,11 @@
 #include <list>
 #include "Objects.h"
 #include "GUI.h"
+#include "UI.h"
 
 
 
-typedef struct nn {
-    struct nn* next;
-    struct nn* prev;
-    Obj* object;
-}objNode;
 
-typedef struct {
-    objNode* first;
-    objNode* last;
-}objList;
 
 //define window dimensions
 constexpr int WINDOW_WIDTH{ 1000 };
@@ -41,12 +33,6 @@ objList objects;
 SDL_Texture* grid;
 SDL_FRect* gr[3][3];
 
-objList createObjList() {
-    objList ret;
-    ret.first = NULL;
-    ret.last = NULL;
-    return ret;
-}
 
 void initializeGrid() {
     for (int i = 0; i < 3; i++) {
@@ -91,25 +77,6 @@ void transformGrid(float dx, float dy) {
     }
 }
 
-objNode* createNode(Obj* object) {
-    objNode* node = (objNode*)malloc(sizeof(objNode));
-    node->object = object;
-    node->next = NULL;
-    node->prev = NULL;
-    return node;
-}
-
-void addObject(objList* list, objNode* node) {
-    if (list->first == NULL) {
-        list->first = node;
-        list->last = node;
-    }
-    else {
-        node->next = list->first;
-        list->first->prev = node;
-        list->first = node;
-    }
-}
 
 bool initWindow()
 {
@@ -235,13 +202,7 @@ int main()
     background->w = 1000;
     background->x = 0;
     background->y = 0;
-    objects = createObjList();
-    Obj* object = createObject(20, 500, 500, -0.5, -0.5, 500000, BLUE, true);
-    Obj* object2 = createObject(20, 200, 200, 1, 0, 10000000, RED, false);
-    objNode* node = createNode(object);
-    objNode* node2 = createNode(object2);
-    addObject(&objects, node);
-    addObject(&objects, node2);
+    objects = startUI();
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL Init failed: " << SDL_GetError() << '\n';
         return 1;
@@ -250,9 +211,10 @@ int main()
 
     bool running = true;
     SDL_Event e;
-    drawGUIWindow(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, quit, mouseX, mouseY, displayScale, window, currentEvent);
+    //NO GUI FOR TODAY
+    //drawGUIWindow(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, quit, mouseX, mouseY, displayScale, window, currentEvent);
     //destroyWindow();
-    initWindow();
+    //initWindow();
 
     const Uint32 frameDelay = 17; // 60 FPS
     grid = IMG_LoadTexture(renderer, "grid.png");
